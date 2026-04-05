@@ -1,4 +1,4 @@
-   version: '3.8'
+version: '3.8'
 
 services:
   rocketchat:
@@ -12,7 +12,14 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
 
   mongo:
     image: mongo:5
@@ -21,15 +28,13 @@ services:
     command: mongod --oplogSize 128 --replSet rs0
     volumes:
       - mongodb_data:/data/db
-    ports:
-      - "27017:27017"
-
-  mongo-init-replica:
-    image: mongo:5
-    command: >
-      bash -c "sleep 10 && mongosh --host mongo:27017 --eval 'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"mongo:27017\"}]})'"
-    depends_on:
-      - mongo
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "rs.status().ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 
 volumes:
   mongodb_data:
