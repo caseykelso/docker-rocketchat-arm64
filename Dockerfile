@@ -3,7 +3,6 @@ FROM node:22-bookworm-slim
 ARG ARCH=aarch64
 
 ENV DENO_VERSION=1.43.5
-ENV MONGOSH_VERSION=2.6.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS=yes
@@ -16,8 +15,6 @@ RUN set -ex \
   && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
   && chmod 755 /tmp/deno \
   && mv /tmp/deno /usr/local/bin/deno \
-  && curl -fsSL "https://github.com/mongodb-js/mongosh/releases/download/v${MONGOSH_VERSION}/mongosh-${MONGOSH_VERSION}-linux-arm64.tgz" \
-  | tar xz -C /usr/local/bin --strip-components=1 \
   && apt-mark auto '.*' > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \
   | awk '/=>/ { print $(NF-1) }' \
@@ -27,6 +24,20 @@ RUN set -ex \
   | sort -u \
   | xargs -r apt-mark manual \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+
+RUN groupadd -r rocketchat \
+  && useradd -r -g rocketchat rocketchat \
+  && mkdir -p /app/uploads \
+  && chown rocketchat:rocketchat /app/uploads
+
+VOLUME /app/uploads
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+ENV RC_VERSION=7.12.6
+ENV SHARP_VERSION=^0.33.5
 
 RUN set -eux \
   && apt-get update \
@@ -59,19 +70,9 @@ RUN set -eux \
   && npm cache clear --force \
   && chown -R rocketchat:rocketchat /app
 
-RUN groupadd -r rocketchat \
-  && useradd -r -g rocketchat rocketchat \
-  && mkdir -p /app/uploads \
-  && chown rocketchat:rocketchat /app/uploads
+USER rocketchat
 
-VOLUME /app/uploads
-
-ENV NODE_ENV=production
-
-ENV RC_VERSION=7.12.6
-ENV SHARP_VERSION=^0.33.5
-
-WORKDIR /app
+WORKDIR /app/bundle
 
 # needs a mongoinstance - defaults to container linking with alias 'db'
 ENV DEPLOY_METHOD=docker-official \
@@ -80,11 +81,6 @@ ENV DEPLOY_METHOD=docker-official \
   PORT=3000 \
   ROOT_URL=http://localhost:3000
 
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["node", "main.js"]
-
-WORKDIR /app/bundle
-
 EXPOSE 3000
+
+CMD ["node", "main.js"]
