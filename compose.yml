@@ -2,7 +2,7 @@
 
 services:
   rocketchat:
-    image: caseykelso/docker-rocketchat-arm64:7.13.6
+    image: caseykelso/docker-rocketchat-arm64:8.0.4
     container_name: rocketchat
     restart: unless-stopped
     environment:
@@ -15,7 +15,7 @@ services:
       - mongo
 
   mongo:
-    image: mongo:5
+    image: mongo:8
     container_name: mongodb
     restart: unless-stopped
     command: mongod --oplogSize 128 --replSet rs0
