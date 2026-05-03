@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '7.*'
+      - '8.*'
 
 env:
   # Use docker.io for Docker Hub if empty
