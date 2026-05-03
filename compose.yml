@@ -2,7 +2,7 @@
 
 services:
   rocketchat:
-    image: caseykelso/docker-rocketchat-arm64:8.0.4
+    image: caseykelso/docker-rocketchat-arm64:8.1.3
     container_name: rocketchat
     restart: unless-stopped
     environment:
