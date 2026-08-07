@@ -10,7 +10,8 @@ ENV DEBCONF_NOWARNINGS=yes
 RUN set -ex \
   && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
   && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && echo "3335cd10a3c17afa5a44fc79484cd3471ca151afa5d9ba6080e55a7faa7dafb5 /tmp/deno-aarch64-unknown-linux-gnu.zip" | sha256sum -c - \
+  && curl -fsSL https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip.sha256sum --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip.sha256sum \
+  && cd /tmp && sha256sum -c deno-${ARCH}-unknown-linux-gnu.zip.sha256sum && cd - \
   && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
   && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
   && chmod 755 /tmp/deno \
