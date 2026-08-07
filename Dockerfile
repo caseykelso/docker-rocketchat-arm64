@@ -1,8 +1,8 @@
-FROM node:22-bookworm-slim
+FROM node:22.22.3-bookworm-slim
 
 ARG ARCH=aarch64
 
-ENV DENO_VERSION=1.43.5
+ENV DENO_VERSION=2.3.1
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS=yes
@@ -53,10 +53,12 @@ RUN set -eux \
   && tar zxf rocket.chat.tgz \
   && rm rocket.chat.tgz rocket.chat.tgz.asc \
   && cd bundle/programs/server \
+  && cd bundle/programs/server \
   && npm install --unsafe-perm=true \
-  && rm -rf npm/node_modules/sharp \
-  && npm install --cpu=arm64 --os=linux sharp@${SHARP_VERSION} \
-  && mv node_modules/sharp npm/node_modules/sharp \
+  && rm -rf node_modules/sharp node_modules/@img npm/node_modules/sharp npm/node_modules/@img \
+  && npm install --unsafe-perm=true --cpu=arm64 --os=linux --libc=glibc sharp@${SHARP_VERSION} \
+  && cp -a node_modules/sharp npm/node_modules/sharp \
+  && cp -a node_modules/@img npm/node_modules/@img \
   && apt-mark auto '.*' > /dev/null \
   && apt-mark manual $aptMark > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \
