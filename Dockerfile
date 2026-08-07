@@ -54,7 +54,6 @@ RUN set -eux \
   && tar zxf rocket.chat.tgz \
   && rm rocket.chat.tgz rocket.chat.tgz.asc \
   && cd bundle/programs/server \
-  && cd bundle/programs/server \
   && npm install --unsafe-perm=true \
   && rm -rf node_modules/sharp node_modules/@img npm/node_modules/sharp npm/node_modules/@img \
   && npm install --unsafe-perm=true --cpu=arm64 --os=linux --libc=glibc sharp@${SHARP_VERSION} \
