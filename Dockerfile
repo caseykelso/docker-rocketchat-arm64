@@ -38,7 +38,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 ENV RC_VERSION=8.7.0
-ENV SHARP_VERSION=^0.33.5
+ENV SHARP_VERSION=^0.35.3
 
 RUN set -eux \
   && apt-get update \
@@ -59,6 +59,8 @@ RUN set -eux \
   && npm install --unsafe-perm=true --cpu=arm64 --os=linux --libc=glibc sharp@${SHARP_VERSION} \
   && cp -a node_modules/sharp npm/node_modules/sharp \
   && cp -a node_modules/@img npm/node_modules/@img \
+  && test -f npm/node_modules/sharp/dist/index.cjs \
+  && test -d npm/node_modules/@img \
   && apt-mark auto '.*' > /dev/null \
   && apt-mark manual $aptMark > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \
