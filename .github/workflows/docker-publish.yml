@@ -8,7 +8,8 @@ name: Docker Publish
 on:
   workflow_dispatch:
   push:
-    tags - '*'
+    tags:
+      - '*'
     branches:
       - '7.*'
       - '8.*'
