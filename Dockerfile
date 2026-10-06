@@ -1,30 +1,7 @@
-FROM node:22.22.3-bookworm-slim
-
-ARG ARCH=aarch64
-
-ENV DENO_VERSION=2.3.1
+FROM node:24.15.0-trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS=yes
-
-RUN set -ex \
-  && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && curl -fsSL https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip.sha256sum --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip.sha256sum \
-  && cd /tmp && sha256sum -c deno-${ARCH}-unknown-linux-gnu.zip.sha256sum && cd - \
-  && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
-  && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && chmod 755 /tmp/deno \
-  && mv /tmp/deno /usr/local/bin/deno \
-  && apt-mark auto '.*' > /dev/null \
-  && find /usr/local -type f -executable -exec ldd '{}' ';' \
-  | awk '/=>/ { print $(NF-1) }' \
-  | sort -u \
-  | xargs -r dpkg-query --search \
-  | cut -d: -f1 \
-  | sort -u \
-  | xargs -r apt-mark manual \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 RUN groupadd -r rocketchat \
   && useradd -r -g rocketchat rocketchat \
