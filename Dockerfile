@@ -14,17 +14,21 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ENV RC_VERSION=8.9.1
+ENV RC_VERSION=9.0.0
 ENV SHARP_VERSION=^0.35.3
 
 RUN set -eux \
   && apt-get update \
   && apt-get install -y --no-install-recommends fontconfig \
   && aptMark="$(apt-mark showmanual)" \
+  && echo "$aptMark" > /tmp/apt-mark.manual \
   && apt-get install -y --no-install-recommends g++ make python3 ca-certificates curl gnupg \
-  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux \
   # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
-  && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
+  && gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
+  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
   && curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
   && curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
   && gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
@@ -37,9 +41,11 @@ RUN set -eux \
   && cp -a node_modules/sharp npm/node_modules/sharp \
   && cp -a node_modules/@img npm/node_modules/@img \
   && test -f npm/node_modules/sharp/dist/index.cjs \
-  && test -d npm/node_modules/@img \
+  && test -d npm/node_modules/@img
+
+RUN set -eux \
   && apt-mark auto '.*' > /dev/null \
-  && apt-mark manual $aptMark > /dev/null \
+  && apt-mark manual $(cat /tmp/apt-mark.manual) > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \
   | awk '/=>/ { print $(NF-1) }' \
   | sort -u \
@@ -48,6 +54,7 @@ RUN set -eux \
   | sort -u \
   | xargs -r apt-mark manual \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /tmp/apt-mark.manual \
   && npm cache clear --force \
   && chown -R rocketchat:rocketchat /app
 
